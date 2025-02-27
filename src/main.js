@@ -1,83 +1,81 @@
 function main() {
 
-  const getBook = () => {
-    const xhr = new XMLHttpRequest();
+  const getBook = async() => {
+    fetch('https://books-api.dicoding.dev/list')
+      .then((response) => {
+        return response.json();
+      })
 
-    xhr.onload = function() {
-      const responseJson = JSON.parse(this.responseText);
+      .then((responseJson) => {
+        if(responseJson.error) {
+          showResponseMessage(responseJson.message);
+        }
+        else {
+          renderAllBooks(responseJson.books);
+        } 
+      })
 
-      if(responseJson.error) {
-        showResponseMessage(responseJson.message);
-      } else {
-        renderAllBooks(responseJson.books);
-      }
-    };
-
-    xhr.onerror = function() {
-      showResponseMessage();
-    };
-
-    xhr.open('GET', 'https://books-api.dicoding.dev/list');
-    xhr.send();
+      .catch((error) => {
+        showResponseMessage(error);
+      });
   };
 
 
-  const insertBook = (book) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.onload = function() {
-      const responseJson = JSON.parse(this.responseText);
+  const insertBook = async(book) => {
+    try {
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': '12345'
+        },
+        body: JSON.stringify(book),
+      };
+      const response = await fetch('https://books-api.dicoding.dev/add', options);
+      const responseJson = await response.json();
       showResponseMessage(responseJson.message);
       getBook();
-    };
-
-    xhr.onerror = function() {
-      showResponseMessage();
-    };
-    xhr.open('POST', 'https://books-api.dicoding.dev/add');
-    
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('X-Auth-Token', '12345');
-
-    xhr.send(JSON.stringify(book));
+    } catch (error) {
+      showResponseMessage(error);
+    }
   };
 
-  const updateBook = (book) => {
-    const xhr = new XMLHttpRequest();
-
-      xhr.onload = function() {
-        const responseJson = JSON.parse(this.responseText);
-        showResponseMessage(responseJson.message);
-        getBook();
+  const updateBook = async(book) => {
+    try {
+      const options = {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': '12345'
+        },
+        body: JSON.stringify(book),
       };
-
-      xhr.onerror = function() {
-        showResponseMessage();
-      };
-      xhr.open('PUT', `https://books-api.dicoding.dev/edit/${book.id}`);
-
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.setRequestHeader('X-Auth-Token', '12345');
-
-      xhr.send(JSON.stringify(book));
+      const response = await fetch(`https://books-api.dicoding.dev/edit/${book.id}`, options);
+      const responseJson = await response.json();
+      showResponseMessage(responseJson.message);
+      getBook();
+    } catch (error) {
+      showResponseMessage(error);
+    }
   };
 
   const removeBook = (bookId) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.onload = function() {
-      const responseJson = JSON.parse(this.responseText);
-      showResponseMessage(responseJson.message);
-      getBook();
-    };
-
-    xhr.onerror = function() {
-      showResponseMessage();
-    };
-
-    xhr.open('DELETE', `https://books-api.dicoding.dev/delete/${bookId}`);
-    xhr.setRequestHeader('X-Auth-Token', '12345');
-    xhr.send();
+    fetch(`https://books-api.dicoding.dev/delete/${bookId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-Auth-Token': '12345',
+      },
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseJson) => {
+        showResponseMessage(responseJson.message);
+        getBook();
+      })
+      .catch((error) => {
+        showResponseMessage(error);
+      });
   };
 
 
